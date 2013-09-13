@@ -195,8 +195,6 @@ namespace generateSSOToken
             var xmlDoc = new XmlDocument();
             xmlDoc.LoadXml(tokenLine);
 
-            File.WriteAllText(@"C:\qqq.xml", xmlDoc.OuterXml);
-
             //we need to add namespace in order to be able to look for saml: nodes
             var nsmgr = new XmlNamespaceManager(xmlDoc.NameTable);
             nsmgr.AddNamespace("saml", "urn:oasis:names:tc:SAML:1.0:assertion");
