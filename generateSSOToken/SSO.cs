@@ -119,6 +119,7 @@ namespace generateSSOToken
         /// <param name="hostname">The hostname.</param>
         /// <param name="loginId">User loginId, like kaci, sam, admin</param>
         /// <param name="password">password</param>
+        /// <param name="isBase64"></param>
         /// <returns>
         /// encoded SSO Token
         /// </returns>
