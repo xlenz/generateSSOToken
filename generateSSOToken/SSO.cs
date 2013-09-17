@@ -62,8 +62,8 @@ namespace generateSSOToken
             var myHttpWebRequest = (HttpWebRequest)WebRequest.Create(urlSBM);
             myHttpWebRequest.UserAgent = UserAgent;
             myHttpWebRequest.Proxy = null; //speed-up WebReq, do not autodetect Proxy
-            myHttpWebRequest.ReadWriteTimeout = 20000;
-            myHttpWebRequest.Timeout = 15000; 
+            myHttpWebRequest.ReadWriteTimeout = 30000;
+            myHttpWebRequest.Timeout = 25000; 
 
             HttpWebResponse myHttpWebResponse;
             try
