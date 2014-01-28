@@ -15,9 +15,11 @@ namespace generateSSOToken
         private const string KeyUser = "user";
         private const string KeyPwd = "pwd";
         private const string KeyWrap = "wrap";
+        private const string KeyCustomSSO = "customSSO";
+        private const string KeySSOHost = "SSOHost";
         private const char Splitter = '=';
 
-        internal static void Save(string hostnamePort, int ssoPort, string user, string pwd, bool wrap)
+        internal static void Save(string hostnamePort, int ssoPort, string user, string pwd, bool wrap, bool customSSO, string ssoHost)
         {
             var path = Path.Combine(AppFolder, Properties);
             if (!File.Exists(AppFolder))
@@ -28,13 +30,15 @@ namespace generateSSOToken
                 KeySSOPort + Splitter + ssoPort,
                 KeyUser + Splitter + user,
                 KeyPwd + Splitter + pwd,
-                KeyWrap + Splitter + wrap
+                KeyWrap + Splitter + wrap,
+                KeyCustomSSO + Splitter + customSSO,
+                KeySSOHost + Splitter + ssoHost
             };
 
             File.WriteAllLines(path, list.ToArray());
         }
 
-        internal static void Load(TextBoxBase hostnamePort, TextBoxBase ssoPort, TextBoxBase user, TextBoxBase pwd, CheckBox cbWrap)
+        internal static void Load(TextBoxBase hostnamePort, TextBoxBase ssoPort, TextBoxBase user, TextBoxBase pwd, CheckBox cbWrap, CheckBox cbCustomSSO, TextBoxBase tbSSOHost)
         {
             var path = Path.Combine(AppFolder, Properties);
             if (!File.Exists(path))
@@ -45,7 +49,7 @@ namespace generateSSOToken
             foreach (var line in file)
             {
                 var keyPair = line.Trim().Split(Splitter);
-                var key = keyPair[0].ToLower();
+                var key = keyPair[0];
                 var value = string.Empty;
                 if (keyPair.Length > 1)
                     value = keyPair[1];
@@ -64,9 +68,17 @@ namespace generateSSOToken
                         pwd.Text = value;
                         break;
                     case KeyWrap:
-                        bool flag;
-                        Boolean.TryParse(value, out flag);
-                        cbWrap.Checked = flag;
+                        bool flagWrap;
+                        Boolean.TryParse(value, out flagWrap);
+                        cbWrap.Checked = flagWrap;
+                        break;
+                    case KeyCustomSSO:
+                        bool flagCustom;
+                        Boolean.TryParse(value, out flagCustom);
+                        cbCustomSSO.Checked = flagCustom;
+                        break;
+                    case KeySSOHost:
+                        tbSSOHost.Text = value;
                         break;
                 }
             }

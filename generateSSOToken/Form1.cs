@@ -40,7 +40,7 @@ namespace generateSSOToken
             toolTip1.SetToolTip(BtnCopyToClipboardDec, copyToClipMsg);
             _defaultColor = TbPort.BackColor;
             _port = Convert.ToInt32(TbPort.Text);
-            Helpers.Load(TbHostnamePort, TbPort, TbUser, TbPwd, CbWrap);
+            Helpers.Load(TbHostnamePort, TbPort, TbUser, TbPwd, CbWrap, CbCustomSSO, TbSsoHostname);
         }
 
         void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -72,15 +72,28 @@ namespace generateSSOToken
 
         private void TbHostnamePortTextChanged(object sender, EventArgs e)
         {
-            if (TbHostnamePort.Text.Contains(" "))
+            ReplaceBadChars(TbHostnamePort);
+            LbHostnamePort.Visible = TbHostnamePort.Text == string.Empty;
+        }
+
+        private void TbSsoHostnameTextChanged(object sender, EventArgs e)
+        {
+            ReplaceBadChars(TbSsoHostname);
+            LbHostnamePort.Visible = TbHostnamePort.Text == string.Empty;
+        }
+
+        private static void ReplaceBadChars(TextBoxBase tb)
+        {
+            if (tb.Text.Contains(" ") || tb.Text.Contains("{") || tb.Text.Contains("}"))
             {
-                int beforeLength = TbHostnamePort.Text.Substring(0, TbHostnamePort.SelectionStart).Length;
-                TbHostnamePort.Text = TbHostnamePort.Text.Replace(" ", "");
+                int beforeLength = tb.Text.Substring(0, tb.SelectionStart).Length;
+                tb.Text = tb.Text.Replace(" ", "");
+                tb.Text = tb.Text.Replace("{", "");
+                tb.Text = tb.Text.Replace("}", "");
                 if (beforeLength < 1)
                     beforeLength = 1;
-                TbHostnamePort.SelectionStart = beforeLength-1;
+                tb.SelectionStart = beforeLength - 1;
             }
-            LbHostnamePort.Visible = TbHostnamePort.Text == string.Empty;
         }
 
         private void TbPwdTextChanged(object sender, EventArgs e)
@@ -150,6 +163,7 @@ namespace generateSSOToken
         {
             Helpers.BtnEnable(BtnGetSSO, false);
             var hostname = TbHostnamePort.Text;
+            var ssoHostname = CbCustomSSO.Checked ? TbSsoHostname.Text : null;
             var user = TbUser.Text;
             var pwd = TbPwd.Text;
             Helpers.LbVisible(LbGettingSSO, true);
@@ -157,9 +171,9 @@ namespace generateSSOToken
             Helpers.BtnEnable(BtnGetSSO, true);
             try
             {
-                _ssoXML = new SSO(hostname, user, pwd, isBase64: false, ssoPort: _port.ToString()).Get();
+                _ssoXML = new SSO(hostname, user, pwd, isBase64: false, ssoPort: _port.ToString(), ssoHostname: ssoHostname).Get();
                 var ssoBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(_ssoXML));
-                Helpers.Save(hostname, _port, user, pwd, CbWrap.Checked);
+                Helpers.Save(hostname, _port, user, pwd, CbWrap.Checked, CbCustomSSO.Checked, ssoHostname);
                 Helpers.CtlText(groupBox2, "Result (for user " + user + ")");
                 WrapXmlWithSOAPHeaders();
                 Helpers.CtlText(TbSSOEnc, ssoBase64);
@@ -186,6 +200,11 @@ namespace generateSSOToken
                     ThreadDispose();
                 }
             }
+        }
+
+        private void CustomSSOCheckedChanged(object sender, EventArgs e)
+        {
+            TbSsoHostname.Enabled = CbCustomSSO.Checked;
         }
     }
 }

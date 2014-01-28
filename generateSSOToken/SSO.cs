@@ -15,7 +15,6 @@ namespace generateSSOToken
     {
         private const string UserAgent = @"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.57 Safari/537.36";
         private readonly string _ssoToken;
-        private readonly string _ssoPort;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SSO"/> class.
@@ -25,10 +24,12 @@ namespace generateSSOToken
         /// <param name="password">password</param>
         /// <param name="isBase64">true - base64, false - xml</param>
         /// <param name="ssoPort">SSO Port, default: 8085</param>
-        public SSO(string hostname, string loginId, string password, bool isBase64 = true, string ssoPort = "8085")
+        /// <param name="ssoHostname"></param>
+        public SSO(string hostname, string loginId, string password, bool isBase64 = true, string ssoPort = "8085", string ssoHostname = null)
         {
-            _ssoPort = ssoPort;
-            _ssoToken = GetSSO(hostname, loginId, password, isBase64);
+            if (ssoHostname == null)
+                ssoHostname = hostname;
+            _ssoToken = GetSSO(hostname, ssoHostname, ssoPort, loginId, password, isBase64);
         }
 
         /// <summary>
@@ -60,8 +61,8 @@ namespace generateSSOToken
 
             ServicePointManager.Expect100Continue = false; //speed-up WebReq
             var myHttpWebRequest = (HttpWebRequest)WebRequest.Create(urlSBM);
-            myHttpWebRequest.UserAgent = UserAgent;
             myHttpWebRequest.Proxy = null; //speed-up WebReq, do not autodetect Proxy
+            myHttpWebRequest.UserAgent = UserAgent;
             myHttpWebRequest.ReadWriteTimeout = 30000;
             myHttpWebRequest.Timeout = 25000; 
 
@@ -96,12 +97,6 @@ namespace generateSSOToken
                 {
                     var m = Regex.Match(l, @"action=(['""]).*?sid=(.*?)(\1|&)");
                     sid = m.Groups[2].Value;
-
-                    //Alternative way
-                    //string sidIdentifier = "login?sid=";
-                    //int indxStart = l.IndexOf(sidIdentifier);
-                    //int indxEnd = l.IndexOf("&", indxStart);
-                    //var sidAlt = l.Substring(indxStart + sidIdentifier.Length, indxEnd - (indxStart + sidIdentifier.Length));
                 }
                 if (opaque == null && l.Contains("\"opaque\""))
                 {
@@ -117,6 +112,8 @@ namespace generateSSOToken
         /// Gets SSO Token.
         /// </summary>
         /// <param name="hostname">The hostname.</param>
+        /// <param name="ssoHostname">sso hostname</param>
+        /// <param name="ssoPort"></param>
         /// <param name="loginId">User loginId, like kaci, sam, admin</param>
         /// <param name="password">password</param>
         /// <param name="isBase64"></param>
@@ -126,19 +123,12 @@ namespace generateSSOToken
         /// <exception cref="System.Exception">SSO: response doesn't contain 'RequestSecurityTokenResponse'.\nResponse:  + responseArr
         /// or
         /// SSO: Cannot find //saml:Assertion in provided XML. xml:\n + tokenLine</exception>
-        private string GetSSO(string hostname, string loginId, string password, bool isBase64)
+        private string GetSSO(string hostname, string ssoHostname, string ssoPort, string loginId, string password, bool isBase64)
         {
             string sid = null, opaque = null; //both should be null
             //we need SBM to generate SID and opaque values so we can proceed
             GetOpaqueAndSID(hostname, ref sid, ref opaque);
 
-            //This URL is from the login-screen to SBM workspace.
-            //It contains several fields on the login-form, with values, required to obtain SSO Token from server:
-            //<input type="text" id="authUID" name="username" title="User Name">
-            //<input type="password" id="authPWD" name="password" title="Password">
-            //<input type="hidden" name="opaque" value="3e877485270087c714c7c9bf7051124dd2b5132c">
-            //<input type="hidden" name="logintype" value="1">
-            //Passing values from these fields to server will be emulated by method: WebClient.UploadValues(url, "POST", NameValueCollection(/*values inside*/))
             var hostPort = hostname.Split(':');
             string host = hostPort[0];
             string port = string.Empty;
@@ -149,13 +139,10 @@ namespace generateSSOToken
                 doubleDot = "%3A";
             }
 
-            var url = string.Format("http://{0}:{4}/idp/login?sid={1}&continue=http%3A%2F%2F{0}{2}{3}%2Ftmtrack%2Ftmtrack.dll%3F", host, sid, doubleDot, port, _ssoPort);
+            var url = string.Format("http://{5}:{4}/idp/login?sid={1}&continue=http%3A%2F%2F{0}{2}{3}%2Ftmtrack%2Ftmtrack.dll%3F", host, sid, doubleDot, port, ssoPort, ssoHostname);
 
-            var webClient = new WebClient();
+            var webClient = new WebClient {Proxy = null};
 
-            webClient.Headers.Add("user-agent", UserAgent);
-
-            //NameValueCollection class can be used for headers (http headers), query strings and form data (html form). Each element is a key/value pair.
             var formData = new NameValueCollection();
             formData["username"] = loginId;
             formData["password"] = password;
@@ -166,11 +153,8 @@ namespace generateSSOToken
 
             webClient.Dispose();
 
-            //Content, expected after uploading values from html login form to the "tmtrack.dll" web-service is ->  "Headers" part ->"Form Data" section -> "wresult" attribute
-            //it contains bytes arrach, started with "%3Cwst%3ARequestSecurityTokenResponse"
-            //convert response bytes into string array
             var responseArr = Encoding.UTF8.GetString(responseBytes).Split(Environment.NewLine.ToCharArray());
-            //we need to get only one line, that contains RequestSecurityTokenResponse
+            
             //todo: can we convert html response into some jQuery object or so and look for required value?
             string tokenLine = null;
             for (int index = 0; index < responseArr.Length && tokenLine == null; index++)
@@ -203,8 +187,7 @@ namespace generateSSOToken
             var token = xmlDoc.SelectSingleNode("//saml:Assertion", nsmgr);
             if (token == null)
                 throw new Exception("SSO: Cannot find //saml:Assertion in provided XML. xml:\n" + tokenLine);
-            //convert node and all its child nodes into byte array
-            //encode to base64
+            
             if (!isBase64)
                 return token.OuterXml;
 
