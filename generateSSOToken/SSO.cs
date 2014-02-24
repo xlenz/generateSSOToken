@@ -13,7 +13,7 @@ namespace generateSSOToken
     /// </summary>
     public class SSO : IDisposable
     {
-        private const string UserAgent = @"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.57 Safari/537.36";
+        private const string UserAgent = @"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.117 Safari/537.36";
         private readonly string _ssoToken;
 
         /// <summary>
@@ -27,8 +27,6 @@ namespace generateSSOToken
         /// <param name="ssoHostname"></param>
         public SSO(string hostname, string loginId, string password, bool isBase64 = true, string ssoPort = "8085", string ssoHostname = null)
         {
-            if (ssoHostname == null)
-                ssoHostname = hostname;
             _ssoToken = GetSSO(hostname, ssoHostname, ssoPort, loginId, password, isBase64);
         }
 
@@ -138,10 +136,13 @@ namespace generateSSOToken
                 port = hostPort[1];
                 doubleDot = "%3A";
             }
+            if (ssoHostname == null)
+                ssoHostname = host;
 
             var url = string.Format("http://{5}:{4}/idp/login?sid={1}&continue=http%3A%2F%2F{0}{2}{3}%2Ftmtrack%2Ftmtrack.dll%3F", host, sid, doubleDot, port, ssoPort, ssoHostname);
 
-            var webClient = new WebClient {Proxy = null};
+            var webClient = new WebClient {Proxy = null };
+            webClient.Headers.Add("user-agent", UserAgent);
 
             var formData = new NameValueCollection();
             formData["username"] = loginId;
