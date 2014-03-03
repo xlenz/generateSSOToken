@@ -36,6 +36,7 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.ComboHistory = new System.Windows.Forms.ComboBox();
             this.CbCustomSSO = new System.Windows.Forms.CheckBox();
             this.TbSsoHostname = new System.Windows.Forms.TextBox();
             this.label9 = new System.Windows.Forms.Label();
@@ -59,6 +60,7 @@
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.toolTip2 = new System.Windows.Forms.ToolTip(this.components);
             this.LbGettingSSO = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox4.SuspendLayout();
@@ -80,7 +82,7 @@
             this.TbHostnamePort.Location = new System.Drawing.Point(6, 32);
             this.TbHostnamePort.MaxLength = 1000;
             this.TbHostnamePort.Name = "TbHostnamePort";
-            this.TbHostnamePort.Size = new System.Drawing.Size(248, 20);
+            this.TbHostnamePort.Size = new System.Drawing.Size(154, 20);
             this.TbHostnamePort.TabIndex = 1;
             this.TbHostnamePort.Text = "stl-qa-oalmt3";
             this.TbHostnamePort.TextChanged += new System.EventHandler(this.TbHostnamePortTextChanged);
@@ -125,6 +127,8 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.label6);
+            this.groupBox1.Controls.Add(this.ComboHistory);
             this.groupBox1.Controls.Add(this.CbCustomSSO);
             this.groupBox1.Controls.Add(this.TbSsoHostname);
             this.groupBox1.Controls.Add(this.label9);
@@ -141,6 +145,15 @@
             this.groupBox1.TabIndex = 6;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Connection details";
+            // 
+            // ComboHistory
+            // 
+            this.ComboHistory.FormattingEnabled = true;
+            this.ComboHistory.Location = new System.Drawing.Point(167, 32);
+            this.ComboHistory.Name = "ComboHistory";
+            this.ComboHistory.Size = new System.Drawing.Size(87, 21);
+            this.ComboHistory.TabIndex = 10;
+            this.ComboHistory.Visible = false;
             // 
             // CbCustomSSO
             // 
@@ -392,6 +405,17 @@
             this.LbGettingSSO.Text = "Getting SSO Token in progress...";
             this.LbGettingSSO.Visible = false;
             // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label6.Location = new System.Drawing.Point(164, 16);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(46, 13);
+            this.label6.TabIndex = 11;
+            this.label6.Text = "History";
+            this.label6.Visible = false;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -451,6 +475,8 @@
         private System.Windows.Forms.Button BtnCopyHeader;
         private System.Windows.Forms.TextBox TbSsoHostname;
         private System.Windows.Forms.CheckBox CbCustomSSO;
+        private System.Windows.Forms.ComboBox ComboHistory;
+        private System.Windows.Forms.Label label6;
     }
 }
 

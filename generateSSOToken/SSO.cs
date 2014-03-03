@@ -53,7 +53,7 @@ namespace generateSSOToken
         /// <exception cref="System.Exception">SSO: Cannot get repsponse from request
         /// or
         /// SSO: Failed to get opaque or sid value</exception>
-        private void GetOpaqueAndSID(string hostname, ref string sid, ref string opaque)
+        private void GetOpaqueAndSID(string hostname, ref string sid, ref string fsid, ref string opaque)
         {
             var urlSBM = string.Format(@"http://{0}/tmtrack/tmtrack.dll?", hostname);
 
@@ -80,30 +80,35 @@ namespace generateSSOToken
                 throw new WebException("SSO: Cannot get repsponse from request");
             //Should work with simpler algorithm of reading:
             var streamRead = new StreamReader(streamResponse);
-            var respArr = streamRead.ReadToEnd().Split(Environment.NewLine.ToCharArray());
+            var respStr = streamRead.ReadToEnd();
+            var respArr = respStr.Split(Environment.NewLine.ToCharArray());
 
             // Release the response object resources.
             streamRead.Close();
             streamResponse.Close();
             myHttpWebResponse.Close();
 
+
             //todo: can we convert html response into some jQuery object or so and look for required value?
             for (int i = 0; i < respArr.Length && (sid == null || opaque == null); i++)
             {
                 var l = respArr[i];
-                if (sid == null && l.Contains("login?sid="))
+                if (sid == null && l.Contains("sid="))
                 {
                     var m = Regex.Match(l, @"action=(['""]).*?sid=(.*?)(\1|&)");
-                    sid = m.Groups[2].Value;
+                    if (l.Contains("fsid="))
+                        fsid = m.Groups[2].Value;
+                    else
+                        sid = m.Groups[2].Value;
                 }
-                if (opaque == null && l.Contains("\"opaque\""))
+                if (opaque == null && l.Contains("name=\"opaque\""))
                 {
                     var m = Regex.Match(l, @"value=(['""])(.+?)\1");
                     opaque = m.Groups[2].Value;
                 }
             }
-            if (sid == null || opaque == null)
-                throw new Exception("SSO: Failed to get opaque or sid value");
+            if ((sid == null && fsid == null) || opaque == null)
+                throw new Exception("SSO: Failed to get opaque or (f)sid value");
         }
 
         /// <summary>
@@ -123,10 +128,11 @@ namespace generateSSOToken
         /// SSO: Cannot find //saml:Assertion in provided XML. xml:\n + tokenLine</exception>
         private string GetSSO(string hostname, string ssoHostname, string ssoPort, string loginId, string password, bool isBase64)
         {
-            string sid = null, opaque = null; //both should be null
+            string sid = null, fsid = null, opaque = null; //both should be null
             //we need SBM to generate SID and opaque values so we can proceed
-            GetOpaqueAndSID(hostname, ref sid, ref opaque);
+            GetOpaqueAndSID(hostname, ref sid, ref fsid, ref opaque);
 
+            var sidType = sid == null ? "fsid" : "sid";
             var hostPort = hostname.Split(':');
             string host = hostPort[0];
             string port = string.Empty;
@@ -139,7 +145,7 @@ namespace generateSSOToken
             if (ssoHostname == null)
                 ssoHostname = host;
 
-            var url = string.Format("http://{5}:{4}/idp/login?sid={1}&continue=http%3A%2F%2F{0}{2}{3}%2Ftmtrack%2Ftmtrack.dll%3F", host, sid, doubleDot, port, ssoPort, ssoHostname);
+            var url = string.Format("http://{5}:{4}/idp/login?{7}={1}{6}&continue=http%3A%2F%2F{0}{2}{3}%2Ftmtrack%2Ftmtrack.dll%3F", host, sid, doubleDot, port, ssoPort, ssoHostname, fsid, sidType);
 
             var webClient = new WebClient {Proxy = null };
             webClient.Headers.Add("user-agent", UserAgent);
@@ -154,7 +160,8 @@ namespace generateSSOToken
 
             webClient.Dispose();
 
-            var responseArr = Encoding.UTF8.GetString(responseBytes).Split(Environment.NewLine.ToCharArray());
+            var responseStr = Encoding.UTF8.GetString(responseBytes);
+            var responseArr = responseStr.Split(Environment.NewLine.ToCharArray());
             
             //todo: can we convert html response into some jQuery object or so and look for required value?
             string tokenLine = null;
