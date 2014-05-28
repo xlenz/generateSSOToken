@@ -25,9 +25,10 @@ namespace generateSSOToken
         /// <param name="isBase64">true - base64, false - xml</param>
         /// <param name="ssoPort">SSO Port, default: 8085</param>
         /// <param name="ssoHostname"></param>
-        public SSO(string hostname, string loginId, string password, bool isBase64 = true, string ssoPort = "8085", string ssoHostname = null)
+        /// <param name="useHttps"></param>
+        public SSO(string hostname, string loginId, string password, bool isBase64 = true, string ssoPort = "8085", string ssoHostname = null, bool useHttps = false)
         {
-            _ssoToken = GetSSO(hostname, ssoHostname, ssoPort, loginId, password, isBase64);
+            _ssoToken = GetSSO(hostname, ssoHostname, ssoPort, loginId, password, isBase64, useHttps);
         }
 
         /// <summary>
@@ -53,16 +54,17 @@ namespace generateSSOToken
         /// <exception cref="System.Exception">SSO: Cannot get repsponse from request
         /// or
         /// SSO: Failed to get opaque or sid value</exception>
-        private void GetOpaqueAndSID(string hostname, ref string sid, ref string fsid, ref string opaque)
+        private void GetOpaqueAndSID(string hostname, ref string sid, ref string fsid, ref string opaque, ref string protocol)
         {
-            var urlSBM = string.Format(@"http://{0}/tmtrack/tmtrack.dll?", hostname);
+            var urlSBM = string.Format(@"{0}://{1}/tmtrack/tmtrack.dll?", protocol, hostname);
 
             ServicePointManager.Expect100Continue = false; //speed-up WebReq
             var myHttpWebRequest = (HttpWebRequest)WebRequest.Create(urlSBM);
             myHttpWebRequest.Proxy = null; //speed-up WebReq, do not autodetect Proxy
             myHttpWebRequest.UserAgent = UserAgent;
             myHttpWebRequest.ReadWriteTimeout = 30000;
-            myHttpWebRequest.Timeout = 25000; 
+            myHttpWebRequest.Timeout = 25000;
+            ServicePointManager.ServerCertificateValidationCallback +=(sender, cert, chain, sslPolicyErrors) => true;
 
             HttpWebResponse myHttpWebResponse;
             try
@@ -120,17 +122,20 @@ namespace generateSSOToken
         /// <param name="loginId">User loginId, like kaci, sam, admin</param>
         /// <param name="password">password</param>
         /// <param name="isBase64"></param>
+        /// <param name="useHttps"></param>
         /// <returns>
         /// encoded SSO Token
         /// </returns>
         /// <exception cref="System.Exception">SSO: response doesn't contain 'RequestSecurityTokenResponse'.\nResponse:  + responseArr
         /// or
         /// SSO: Cannot find //saml:Assertion in provided XML. xml:\n + tokenLine</exception>
-        private string GetSSO(string hostname, string ssoHostname, string ssoPort, string loginId, string password, bool isBase64)
+        private string GetSSO(string hostname, string ssoHostname, string ssoPort, string loginId, string password, bool isBase64, bool useHttps)
         {
-            string sid = null, fsid = null, opaque = null; //both should be null
+            string sid = null, fsid = null, opaque = null, protocol = "http"; //both should be null
+            if (useHttps)
+                protocol += "s";
             //we need SBM to generate SID and opaque values so we can proceed
-            GetOpaqueAndSID(hostname, ref sid, ref fsid, ref opaque);
+            GetOpaqueAndSID(hostname, ref sid, ref fsid, ref opaque, ref protocol);
 
             var sidType = sid == null ? "fsid" : "sid";
             var hostPort = hostname.Split(':');
@@ -145,7 +150,7 @@ namespace generateSSOToken
             if (ssoHostname == null)
                 ssoHostname = host;
 
-            var url = string.Format("http://{5}:{4}/idp/login?{7}={1}{6}&continue=http%3A%2F%2F{0}{2}{3}%2Ftmtrack%2Ftmtrack.dll%3F", host, sid, doubleDot, port, ssoPort, ssoHostname, fsid, sidType);
+            var url = string.Format("{8}://{5}:{4}/idp/login?{7}={1}{6}&continue=http%3A%2F%2F{0}{2}{3}%2Ftmtrack%2Ftmtrack.dll%3F", host, sid, doubleDot, port, ssoPort, ssoHostname, fsid, sidType, protocol);
 
             var webClient = new WebClient {Proxy = null };
             webClient.Headers.Add("user-agent", UserAgent);

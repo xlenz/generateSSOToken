@@ -40,7 +40,7 @@ namespace generateSSOToken
             toolTip1.SetToolTip(BtnCopyToClipboardDec, copyToClipMsg);
             _defaultColor = TbPort.BackColor;
             _port = Convert.ToInt32(TbPort.Text);
-            Helpers.Load(TbHostnamePort, TbPort, TbUser, TbPwd, CbWrap, CbCustomSSO, TbSsoHostname);
+            Helpers.Load(TbHostnamePort, TbPort, TbUser, TbPwd, CbWrap, CbCustomSSO, TbSsoHostname, cbUseHttps);
         }
 
         void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -166,14 +166,15 @@ namespace generateSSOToken
             var ssoHostname = CbCustomSSO.Checked ? TbSsoHostname.Text : null;
             var user = TbUser.Text;
             var pwd = TbPwd.Text;
+            bool useHttps = cbUseHttps.Checked;
             Helpers.LbVisible(LbGettingSSO, true);
             Helpers.CtlText(BtnGetSSO, "Abort");
             Helpers.BtnEnable(BtnGetSSO, true);
             try
             {
-                _ssoXML = new SSO(hostname, user, pwd, isBase64: false, ssoPort: _port.ToString(), ssoHostname: ssoHostname).Get();
+                _ssoXML = new SSO(hostname, user, pwd, isBase64: false, ssoPort: _port.ToString(), ssoHostname: ssoHostname, useHttps: useHttps).Get();
                 var ssoBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(_ssoXML));
-                Helpers.Save(hostname, _port, user, pwd, CbWrap.Checked, CbCustomSSO.Checked, ssoHostname);
+                Helpers.Save(hostname, _port, user, pwd, CbWrap.Checked, CbCustomSSO.Checked, ssoHostname, useHttps);
                 Helpers.CtlText(groupBox2, "Result (for user " + user + ")");
                 WrapXmlWithSOAPHeaders();
                 Helpers.CtlText(TbSSOEnc, ssoBase64);

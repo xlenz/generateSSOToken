@@ -17,9 +17,10 @@ namespace generateSSOToken
         private const string KeyWrap = "wrap";
         private const string KeyCustomSSO = "customSSO";
         private const string KeySSOHost = "SSOHost";
+        private const string KeyUseHttps = "useHttps";
         private const char Splitter = '=';
 
-        internal static void Save(string hostnamePort, int ssoPort, string user, string pwd, bool wrap, bool customSSO, string ssoHost)
+        internal static void Save(string hostnamePort, int ssoPort, string user, string pwd, bool wrap, bool customSSO, string ssoHost, bool useHttps)
         {
             var path = Path.Combine(AppFolder, Properties);
             if (!File.Exists(AppFolder))
@@ -32,13 +33,14 @@ namespace generateSSOToken
                 KeyPwd + Splitter + pwd,
                 KeyWrap + Splitter + wrap,
                 KeyCustomSSO + Splitter + customSSO,
-                KeySSOHost + Splitter + ssoHost
+                KeySSOHost + Splitter + ssoHost,
+                KeyUseHttps + Splitter + useHttps
             };
 
             File.WriteAllLines(path, list.ToArray());
         }
 
-        internal static void Load(TextBoxBase hostnamePort, TextBoxBase ssoPort, TextBoxBase user, TextBoxBase pwd, CheckBox cbWrap, CheckBox cbCustomSSO, TextBoxBase tbSSOHost)
+        internal static void Load(TextBoxBase hostnamePort, TextBoxBase ssoPort, TextBoxBase user, TextBoxBase pwd, CheckBox cbWrap, CheckBox cbCustomSSO, TextBoxBase tbSSOHost, CheckBox useHttps)
         {
             var path = Path.Combine(AppFolder, Properties);
             if (!File.Exists(path))
@@ -79,6 +81,11 @@ namespace generateSSOToken
                         break;
                     case KeySSOHost:
                         tbSSOHost.Text = value;
+                        break;
+                    case KeyUseHttps:
+                        bool flagHttps;
+                        Boolean.TryParse(value, out flagHttps);
+                        useHttps.Checked = flagHttps;
                         break;
                 }
             }

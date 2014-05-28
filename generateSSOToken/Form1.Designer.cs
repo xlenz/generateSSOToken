@@ -36,6 +36,7 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.label6 = new System.Windows.Forms.Label();
             this.ComboHistory = new System.Windows.Forms.ComboBox();
             this.CbCustomSSO = new System.Windows.Forms.CheckBox();
             this.TbSsoHostname = new System.Windows.Forms.TextBox();
@@ -60,7 +61,8 @@
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.toolTip2 = new System.Windows.Forms.ToolTip(this.components);
             this.LbGettingSSO = new System.Windows.Forms.Label();
-            this.label6 = new System.Windows.Forms.Label();
+            this.cbUseHttps = new System.Windows.Forms.CheckBox();
+            this.label7 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox4.SuspendLayout();
@@ -127,6 +129,8 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.label7);
+            this.groupBox1.Controls.Add(this.cbUseHttps);
             this.groupBox1.Controls.Add(this.label6);
             this.groupBox1.Controls.Add(this.ComboHistory);
             this.groupBox1.Controls.Add(this.CbCustomSSO);
@@ -141,10 +145,21 @@
             this.groupBox1.Controls.Add(this.TbUser);
             this.groupBox1.Location = new System.Drawing.Point(12, 12);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(260, 180);
+            this.groupBox1.Size = new System.Drawing.Size(276, 180);
             this.groupBox1.TabIndex = 6;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Connection details";
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label6.Location = new System.Drawing.Point(164, 16);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(46, 13);
+            this.label6.TabIndex = 11;
+            this.label6.Text = "History";
+            this.label6.Visible = false;
             // 
             // ComboHistory
             // 
@@ -180,7 +195,7 @@
             // 
             this.label9.AutoSize = true;
             this.label9.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label9.Location = new System.Drawing.Point(197, 56);
+            this.label9.Location = new System.Drawing.Point(165, 56);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(59, 13);
             this.label9.TabIndex = 7;
@@ -188,7 +203,7 @@
             // 
             // TbPort
             // 
-            this.TbPort.Location = new System.Drawing.Point(200, 76);
+            this.TbPort.Location = new System.Drawing.Point(167, 76);
             this.TbPort.MaxLength = 5;
             this.TbPort.Name = "TbPort";
             this.TbPort.Size = new System.Drawing.Size(54, 20);
@@ -206,7 +221,7 @@
             this.groupBox2.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.groupBox2.Location = new System.Drawing.Point(12, 227);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(350, 183);
+            this.groupBox2.Size = new System.Drawing.Size(362, 183);
             this.groupBox2.TabIndex = 7;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Result";
@@ -224,7 +239,7 @@
             this.groupBox4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.groupBox4.Location = new System.Drawing.Point(9, 19);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(334, 62);
+            this.groupBox4.Size = new System.Drawing.Size(346, 62);
             this.groupBox4.TabIndex = 10;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "REST:";
@@ -277,7 +292,7 @@
             this.BtnCopyToClipboardEnc.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.BtnCopyToClipboardEnc.BackgroundImage = global::generateSSOToken.Properties.Resources.clipCopy16;
             this.BtnCopyToClipboardEnc.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
-            this.BtnCopyToClipboardEnc.Location = new System.Drawing.Point(306, 30);
+            this.BtnCopyToClipboardEnc.Location = new System.Drawing.Point(318, 30);
             this.BtnCopyToClipboardEnc.Name = "BtnCopyToClipboardEnc";
             this.BtnCopyToClipboardEnc.Size = new System.Drawing.Size(22, 22);
             this.BtnCopyToClipboardEnc.TabIndex = 7;
@@ -293,7 +308,7 @@
             this.TbSSOEnc.Location = new System.Drawing.Point(157, 32);
             this.TbSSOEnc.Name = "TbSSOEnc";
             this.TbSSOEnc.ReadOnly = true;
-            this.TbSSOEnc.Size = new System.Drawing.Size(143, 20);
+            this.TbSSOEnc.Size = new System.Drawing.Size(155, 20);
             this.TbSSOEnc.TabIndex = 2;
             this.TbSSOEnc.KeyDown += new System.Windows.Forms.KeyEventHandler(this.TbSSOEncKeyDown);
             // 
@@ -309,7 +324,7 @@
             this.groupBox3.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.groupBox3.Location = new System.Drawing.Point(9, 87);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(334, 90);
+            this.groupBox3.Size = new System.Drawing.Size(346, 90);
             this.groupBox3.TabIndex = 9;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "SOAP:";
@@ -323,7 +338,7 @@
             this.RichTbSSOXml.Location = new System.Drawing.Point(6, 35);
             this.RichTbSSOXml.Name = "RichTbSSOXml";
             this.RichTbSSOXml.ReadOnly = true;
-            this.RichTbSSOXml.Size = new System.Drawing.Size(322, 49);
+            this.RichTbSSOXml.Size = new System.Drawing.Size(334, 49);
             this.RichTbSSOXml.TabIndex = 3;
             this.RichTbSSOXml.Text = "";
             // 
@@ -332,7 +347,7 @@
             this.BtnCopyToClipboardDec.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.BtnCopyToClipboardDec.BackgroundImage = global::generateSSOToken.Properties.Resources.clipCopy16;
             this.BtnCopyToClipboardDec.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
-            this.BtnCopyToClipboardDec.Location = new System.Drawing.Point(306, 11);
+            this.BtnCopyToClipboardDec.Location = new System.Drawing.Point(318, 11);
             this.BtnCopyToClipboardDec.Name = "BtnCopyToClipboardDec";
             this.BtnCopyToClipboardDec.Size = new System.Drawing.Size(22, 22);
             this.BtnCopyToClipboardDec.TabIndex = 8;
@@ -375,7 +390,7 @@
             // 
             this.LbHostnamePort.AutoSize = true;
             this.LbHostnamePort.ForeColor = System.Drawing.Color.DarkRed;
-            this.LbHostnamePort.Location = new System.Drawing.Point(272, 51);
+            this.LbHostnamePort.Location = new System.Drawing.Point(295, 47);
             this.LbHostnamePort.Name = "LbHostnamePort";
             this.LbHostnamePort.Size = new System.Drawing.Size(87, 13);
             this.LbHostnamePort.TabIndex = 9;
@@ -386,7 +401,7 @@
             // 
             this.LbPwd.AutoSize = true;
             this.LbPwd.ForeColor = System.Drawing.Color.DarkGoldenrod;
-            this.LbPwd.Location = new System.Drawing.Point(272, 122);
+            this.LbPwd.Location = new System.Drawing.Point(294, 130);
             this.LbPwd.Name = "LbPwd";
             this.LbPwd.Size = new System.Drawing.Size(88, 13);
             this.LbPwd.TabIndex = 10;
@@ -405,22 +420,30 @@
             this.LbGettingSSO.Text = "Getting SSO Token in progress...";
             this.LbGettingSSO.Visible = false;
             // 
-            // label6
+            // cbUseHttps
             // 
-            this.label6.AutoSize = true;
-            this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label6.Location = new System.Drawing.Point(164, 16);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(46, 13);
-            this.label6.TabIndex = 11;
-            this.label6.Text = "History";
-            this.label6.Visible = false;
+            this.cbUseHttps.AutoSize = true;
+            this.cbUseHttps.Location = new System.Drawing.Point(238, 79);
+            this.cbUseHttps.Name = "cbUseHttps";
+            this.cbUseHttps.Size = new System.Drawing.Size(15, 14);
+            this.cbUseHttps.TabIndex = 12;
+            this.cbUseHttps.UseVisualStyleBackColor = true;
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label7.Location = new System.Drawing.Point(235, 56);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(35, 13);
+            this.label7.TabIndex = 13;
+            this.label7.Text = "https";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(374, 422);
+            this.ClientSize = new System.Drawing.Size(386, 422);
             this.Controls.Add(this.LbGettingSSO);
             this.Controls.Add(this.LbPwd);
             this.Controls.Add(this.LbHostnamePort);
@@ -477,6 +500,8 @@
         private System.Windows.Forms.CheckBox CbCustomSSO;
         private System.Windows.Forms.ComboBox ComboHistory;
         private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.CheckBox cbUseHttps;
     }
 }
 
