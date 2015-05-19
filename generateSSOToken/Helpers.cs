@@ -7,44 +7,41 @@ namespace generateSSOToken
 {
     class Helpers
     {
-        static readonly string AppFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "getSSOToken");
+        private static readonly string AppFolder =
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "getSSOToken");
+
         const string Properties = "config.properties";
-        private const string KeyHost = "host";
-        private const string KeySSOPort = "SSOPort";
+        private const string KeyHost = "OEHost";
+        private const string KeySsoPort = "OEPort";
         private const string KeyUser = "user";
         private const string KeyPwd = "pwd";
-        private const string KeyWrap = "wrap";
-        private const string KeyCustomSSO = "customSSO";
-        private const string KeySSOHost = "SSOHost";
         private const string KeyUseHttps = "useHttps";
         private const char Splitter = '=';
 
-        internal static void Save(string hostnamePort, int ssoPort, string user, string pwd, bool wrap, bool customSSO, string ssoHost, bool useHttps)
+        internal static void Save(string oeHost, int oePort, string user, string pwd, bool useHttps)
         {
             var path = Path.Combine(AppFolder, Properties);
             if (!File.Exists(AppFolder))
                 Directory.CreateDirectory(AppFolder);
             var list = new List<string>
             {
-                KeyHost + Splitter + hostnamePort,
-                KeySSOPort + Splitter + ssoPort,
+                KeyHost + Splitter + oeHost,
+                KeySsoPort + Splitter + oePort,
                 KeyUser + Splitter + user,
                 KeyPwd + Splitter + pwd,
-                KeyWrap + Splitter + wrap,
-                KeyCustomSSO + Splitter + customSSO,
-                KeySSOHost + Splitter + ssoHost,
                 KeyUseHttps + Splitter + useHttps
             };
 
             File.WriteAllLines(path, list.ToArray());
         }
 
-        internal static void Load(TextBoxBase hostnamePort, TextBoxBase ssoPort, TextBoxBase user, TextBoxBase pwd, CheckBox cbWrap, CheckBox cbCustomSSO, TextBoxBase tbSSOHost, CheckBox useHttps)
+        internal static void Load(TextBoxBase oeHost, TextBoxBase oePort, TextBoxBase user, TextBoxBase pwd, CheckBox useHttps)
         {
             var path = Path.Combine(AppFolder, Properties);
             if (!File.Exists(path))
+            {
                 return;
+            }
 
             var file = File.ReadAllLines(path);
 
@@ -54,33 +51,22 @@ namespace generateSSOToken
                 var key = keyPair[0];
                 var value = string.Empty;
                 if (keyPair.Length > 1)
+                {
                     value = keyPair[1];
+                }
                 switch (key)
                 {
                     case KeyHost:
-                        hostnamePort.Text = value;
+                        oeHost.Text = value;
                         break;
-                    case KeySSOPort:
-                        ssoPort.Text = value;
+                    case KeySsoPort:
+                        oePort.Text = value;
                         break;
                     case KeyUser:
                         user.Text = value;
                         break;
                     case KeyPwd:
                         pwd.Text = value;
-                        break;
-                    case KeyWrap:
-                        bool flagWrap;
-                        Boolean.TryParse(value, out flagWrap);
-                        cbWrap.Checked = flagWrap;
-                        break;
-                    case KeyCustomSSO:
-                        bool flagCustom;
-                        Boolean.TryParse(value, out flagCustom);
-                        cbCustomSSO.Checked = flagCustom;
-                        break;
-                    case KeySSOHost:
-                        tbSSOHost.Text = value;
                         break;
                     case KeyUseHttps:
                         bool flagHttps;
@@ -94,12 +80,15 @@ namespace generateSSOToken
         internal static void SelectAll(TextBoxBase textBox, KeyEventArgs e)
         {
             if (e.Control && e.KeyCode == Keys.A)
+            {
                 textBox.SelectAll();
+            }
         }
 
         internal static void CopyToClilbaord(string text)
         {
             if (string.IsNullOrEmpty(text)) return;
+
             try
             {
                 Clipboard.SetText(text);
@@ -136,20 +125,7 @@ namespace generateSSOToken
                 lb.Invoke(new VisibilityLabelHandler(LbVisible), lb, enable);
             }
         }
-        /*
-        delegate void ButtonTextHandler(Button btn, string text);
-        internal static void BtnText(Button btn, string text)
-        {
-            if (!btn.InvokeRequired)
-            {
-                btn.Text = text;
-            }
-            else
-            {
-                btn.Invoke(new ButtonTextHandler(BtnText), btn, text);
-            }
-        }
-        */
+
         delegate void CtlTextHandler(Control ctl, string text);
         internal static void CtlText(Control ctl, string text)
         {

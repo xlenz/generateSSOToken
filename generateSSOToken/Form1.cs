@@ -2,21 +2,20 @@
 using System.Drawing;
 using System.Reflection;
 using System.Security.Permissions;
-using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using generateSSOToken.Properties;
+using generateSSOToken.SSO;
 
 namespace generateSSOToken
 {
     public partial class Form1 : Form
     {
-        private string _ssoXML;
-        private string _ssoXMLBack;
-        private const string HeaderStart = "<soapenv:Header><wsse:Security soapenv:mustUnderstand=\"0\" xmlns:wsse=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd\">";
-        private const string HeaderEnd = "</wsse:Security></soapenv:Header>";
+        private SsoToken _sso;
         readonly Color _defaultColor;
         static int _port;
+        private const string HeaderStart = "<soapenv:Header><wsse:Security soapenv:mustUnderstand=\"0\" xmlns:wsse=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd\">";
+        private const string HeaderEnd = "</wsse:Security></soapenv:Header>";
 
         Thread _thread;
 
@@ -36,11 +35,13 @@ namespace generateSSOToken
             InitializeComponent();
             Icon = icon;
             const string copyToClipMsg = "Copy to clipboard";
-            toolTip1.SetToolTip(BtnCopyToClipboardEnc, copyToClipMsg);
-            toolTip1.SetToolTip(BtnCopyToClipboardDec, copyToClipMsg);
+            copyToClipboardToolTip.SetToolTip(BtnCopyToClipboardEnc, copyToClipMsg);
+            copyToClipboardToolTip.SetToolTip(BtnCopyToClipboardDec, copyToClipMsg);
+            copyToClipboardToolTip.SetToolTip(BtnCopyHeader, copyToClipMsg);
+            copyToClipboardToolTip.SetToolTip(BtnCopyToClipboardSoapUi, copyToClipMsg);
             _defaultColor = TbPort.BackColor;
             _port = Convert.ToInt32(TbPort.Text);
-            Helpers.Load(TbHostnamePort, TbPort, TbUser, TbPwd, CbWrap, CbCustomSSO, TbSsoHostname, cbUseHttps);
+            Helpers.Load(TbOeHost, TbPort, TbUser, TbPwd, cbUseHttps);
         }
 
         void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -48,9 +49,9 @@ namespace generateSSOToken
             ThreadDispose();
         }
 
-        private void BtnGetSSOClick(object sender, EventArgs e)
+        private void BtnGetSsoClick(object sender, EventArgs e)
         {
-            if (TbHostnamePort.Text == string.Empty || _port == 0)
+            if (TbOeHost.Text == string.Empty || _port == 0)
                 return;
             if (_thread == null || _thread.ThreadState == ThreadState.Stopped)
             {
@@ -72,14 +73,8 @@ namespace generateSSOToken
 
         private void TbHostnamePortTextChanged(object sender, EventArgs e)
         {
-            ReplaceBadChars(TbHostnamePort);
-            LbHostnamePort.Visible = TbHostnamePort.Text == string.Empty;
-        }
-
-        private void TbSsoHostnameTextChanged(object sender, EventArgs e)
-        {
-            ReplaceBadChars(TbSsoHostname);
-            LbHostnamePort.Visible = TbHostnamePort.Text == string.Empty;
+            ReplaceBadChars(TbOeHost);
+            LbHostnamePort.Visible = TbOeHost.Text == string.Empty;
         }
 
         private static void ReplaceBadChars(TextBoxBase tb)
@@ -101,39 +96,27 @@ namespace generateSSOToken
             LbPwd.Visible = TbUser.Text.Replace(" ", "") == string.Empty;
         }
 
-        private void TbSSOEncKeyDown(object sender, KeyEventArgs e)
+        private void TbSsoEncKeyDown(object sender, KeyEventArgs e)
         {
             Helpers.SelectAll(TbSSOEnc, e);
         }
-
+        
         private void TbHeaderKeyDown(object sender, KeyEventArgs e)
         {
             Helpers.SelectAll(TbHeader, e);
         }
 
-        private void CbWrapCheckedChanged(object sender, EventArgs e)
+        private void TbSoapUiHeader_KeyDown(object sender, KeyEventArgs e)
         {
-            if (string.IsNullOrEmpty(_ssoXML)) return;
-            WrapXmlWithSOAPHeaders();
-            if (!CbWrap.Checked)
-                _ssoXML = _ssoXMLBack;
-
-            RichTbSSOXml.Text = _ssoXML;
+            Helpers.SelectAll(TbSoapUiHeader, e);
         }
-
-        private void WrapXmlWithSOAPHeaders()
-        {
-            if (!CbWrap.Checked) return;
-            _ssoXMLBack = _ssoXML;
-            _ssoXML = HeaderStart + _ssoXML + HeaderEnd;
-        }
-
-        private void BtnCopySSOEncClick(object sender, EventArgs e)
+        
+        private void BtnCopySsoEncClick(object sender, EventArgs e)
         {
             Helpers.CopyToClilbaord(TbSSOEnc.Text);
         }
 
-        private void BtnCopySSODecClick(object sender, EventArgs e)
+        private void BtnCopySsoDecClick(object sender, EventArgs e)
         {
             Helpers.CopyToClilbaord(RichTbSSOXml.Text);
         }
@@ -141,6 +124,11 @@ namespace generateSSOToken
         private void BtnCopyHeaderClick(object sender, EventArgs e)
         {
             Helpers.CopyToClilbaord(TbHeader.Text);
+        }
+
+        private void BtnCopyToClipboardSoapUi_Click(object sender, EventArgs e)
+        {
+            Helpers.CopyToClilbaord(TbSoapUiHeader.Text);
         }
 
         private void TbPortTextChanged(object sender, EventArgs e)
@@ -162,8 +150,7 @@ namespace generateSSOToken
         void ThreadProc()
         {
             Helpers.BtnEnable(BtnGetSSO, false);
-            var hostname = TbHostnamePort.Text;
-            var ssoHostname = CbCustomSSO.Checked ? TbSsoHostname.Text : null;
+            var oeHost = TbOeHost.Text;
             var user = TbUser.Text;
             var pwd = TbPwd.Text;
             bool useHttps = cbUseHttps.Checked;
@@ -172,13 +159,12 @@ namespace generateSSOToken
             Helpers.BtnEnable(BtnGetSSO, true);
             try
             {
-                _ssoXML = new SSO(hostname, user, pwd, isBase64: false, ssoPort: _port.ToString(), ssoHostname: ssoHostname, useHttps: useHttps).Get();
-                var ssoBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(_ssoXML));
-                Helpers.Save(hostname, _port, user, pwd, CbWrap.Checked, CbCustomSSO.Checked, ssoHostname, useHttps);
-                Helpers.CtlText(groupBox2, "Result (for user " + user + ")");
-                WrapXmlWithSOAPHeaders();
-                Helpers.CtlText(TbSSOEnc, ssoBase64);
-                Helpers.CtlText(RichTbSSOXml, _ssoXML);
+                _sso = new SsoToken(oeHost, user, pwd, _port.ToString(), useHttps);
+                Helpers.Save(oeHost, _port, user, pwd, useHttps);
+                Helpers.CtlText(GbResults, "Result (for user " + user + ")");
+                Helpers.CtlText(TbSSOEnc, _sso.GetBase64());
+                Helpers.CtlText(TbSoapUiHeader, HeaderStart + _sso.GetDecoded() + HeaderEnd);
+                Helpers.CtlText(RichTbSSOXml, _sso.GetXmlString());
             }
             catch (Exception exception)
             {
@@ -186,10 +172,10 @@ namespace generateSSOToken
                 {
                     MessageBox.Show(exception.Message, "Error obtaining SSO Token", MessageBoxButtons.OK,
                         MessageBoxIcon.Error);
-                    _ssoXMLBack = _ssoXML = string.Empty;
                     Helpers.CtlText(TbSSOEnc, string.Empty);
+                    Helpers.CtlText(TbSoapUiHeader, string.Empty);
                     Helpers.CtlText(RichTbSSOXml, string.Empty);
-                    Helpers.CtlText(groupBox2, "Result ");
+                    Helpers.CtlText(GbResults, "Result ");
                 }
             }
             finally
@@ -201,11 +187,6 @@ namespace generateSSOToken
                     ThreadDispose();
                 }
             }
-        }
-
-        private void CustomSSOCheckedChanged(object sender, EventArgs e)
-        {
-            TbSsoHostname.Enabled = CbCustomSSO.Checked;
         }
     }
 }
