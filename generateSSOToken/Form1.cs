@@ -20,12 +20,17 @@ namespace generateSSOToken
         Thread _thread;
 
         [SecurityPermissionAttribute(SecurityAction.Demand, ControlThread = true)]
-        internal void ThreadDispose()
+        internal void ThreadDispose(SsoToken sso)
         {
             if (_thread != null)
             {
+                if (sso != null)
+                {
+                    sso.Dispose();
+                }
                 _thread.Abort();
-                _thread.Join(2000);
+                _thread.Join(500);
+                _thread = null;
             }
         }
 
@@ -44,16 +49,16 @@ namespace generateSSOToken
             Helpers.Load(TbOeHost, TbPort, TbUser, TbPwd, cbUseHttps);
         }
 
-        void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        void Form1FormClosing(object sender, FormClosingEventArgs e)
         {
-            ThreadDispose();
+            ThreadDispose(_sso);
         }
 
         private void BtnGetSsoClick(object sender, EventArgs e)
         {
             if (TbOeHost.Text == string.Empty || _port == 0)
                 return;
-            if (_thread == null || _thread.ThreadState == ThreadState.Stopped)
+            if (_thread == null || _thread.ThreadState == ThreadState.Stopped || _thread.ThreadState == ThreadState.Aborted)
             {
                 _thread = new Thread(ThreadProc)
                 {
@@ -64,7 +69,7 @@ namespace generateSSOToken
             else
             {
                 BtnGetSSO.Enabled = false;
-                ThreadDispose();
+                ThreadDispose(_sso);
                 BtnGetSSO.Text = Resources.Form1_button1_Click_Get_SSO_Token;
                 LbGettingSSO.Visible = false;
                 BtnGetSSO.Enabled = true;
@@ -106,7 +111,7 @@ namespace generateSSOToken
             Helpers.SelectAll(TbHeader, e);
         }
 
-        private void TbSoapUiHeader_KeyDown(object sender, KeyEventArgs e)
+        private void TbSoapUiHeaderKeyDown(object sender, KeyEventArgs e)
         {
             Helpers.SelectAll(TbSoapUiHeader, e);
         }
@@ -126,7 +131,7 @@ namespace generateSSOToken
             Helpers.CopyToClilbaord(TbHeader.Text);
         }
 
-        private void BtnCopyToClipboardSoapUi_Click(object sender, EventArgs e)
+        private void BtnCopyToClipboardSoapUiClick(object sender, EventArgs e)
         {
             Helpers.CopyToClilbaord(TbSoapUiHeader.Text);
         }
@@ -180,11 +185,18 @@ namespace generateSSOToken
             }
             finally
             {
-                if (_thread != null && _thread.ThreadState == ThreadState.Background)
+                if (_sso != null)
                 {
-                    Helpers.CtlText(BtnGetSSO, Resources.Form1_button1_Click_Get_SSO_Token);
-                    Helpers.LbVisible(LbGettingSSO, false);
-                    ThreadDispose();
+                    _sso.Dispose();
+                }
+                if (_thread != null)
+                {
+                    if (_thread.ThreadState == ThreadState.Background)
+                    {
+                        Helpers.CtlText(BtnGetSSO, Resources.Form1_button1_Click_Get_SSO_Token);
+                        Helpers.LbVisible(LbGettingSSO, false);
+                    }
+                    ThreadDispose(_sso);
                 }
             }
         }

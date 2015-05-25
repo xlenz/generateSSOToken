@@ -6,11 +6,16 @@ using System.Text;
 
 namespace generateSSOToken
 {
-    public static class WebReq
+    public class WebReq : IDisposable
     {
+        public WebReq()
+        {
+            _disposed = false;
+        }
+
         private static readonly int[] StatusCodes = { 400, 499, 500, 404 };
 
-        public static string Make(string url, int timeout = 60, string method = "POST", string data = null, string contentType = null,
+        public string Make(string url, int timeout = 20, string method = "POST", string data = null, string contentType = null,
             string ssoBase64 = null, bool keepAlive = false, string accept = "*/*", int contentLength = -1)
         {
             var request = (HttpWebRequest)WebRequest.Create(url);
@@ -75,6 +80,24 @@ namespace generateSSOToken
                     }
                 }
             }
+        }
+
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
         }
     }
 }

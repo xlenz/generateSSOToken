@@ -5,7 +5,7 @@ using System.Xml;
 
 namespace generateSSOToken.SSO
 {
-    public class SsoToken
+    public class SsoToken : IDisposable
     {
         private const string Endpoint = "idp/services/Trust";
         private const string ContentType = "application/xml";
@@ -13,9 +13,12 @@ namespace generateSSOToken.SSO
         private string _ssoTokenDecoded;
         private XmlNode _ssoTokenXmlNode;
         private string _ssoTokenXmlString;
+        private WebReq webReq;
 
         public SsoToken(string oeHost, string username, string password, string oePort = "8085", bool isHttps = false)
         {
+            _disposed = false;
+            webReq = new WebReq();
             if (string.IsNullOrEmpty(oeHost) || string.IsNullOrEmpty(oePort) || string.IsNullOrEmpty(oePort) || password == null)
             {
                 throw new Exception(string.Format("Following params are required:\n" +
@@ -63,7 +66,7 @@ namespace generateSSOToken.SSO
             requestData = requestData.Replace("{{Username}}", username).Replace("{{Password}}", password);
             string url = string.Format("http{0}://{1}:{2}/{3}", isHttps ? "s" : string.Empty, oeHost, oePort, Endpoint);
 
-            var response = WebReq.Make(url, contentType: ContentType, data: requestData);
+            var response = webReq.Make(url, contentType: ContentType, data: requestData);
 
             if (string.IsNullOrEmpty(response))
             {
@@ -108,6 +111,29 @@ namespace generateSSOToken.SSO
             _ssoTokenDecoded = tokenShort.OuterXml;
             var bytes = Encoding.UTF8.GetBytes(_ssoTokenDecoded);
             _ssoTokenBase64 = Convert.ToBase64String(bytes);
+        }
+
+        bool _disposed;
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                webReq.Dispose();
+            }
+
+            _disposed = true;
         }
     }
 }

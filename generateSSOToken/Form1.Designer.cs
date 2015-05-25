@@ -315,7 +315,7 @@
             this.BtnCopyToClipboardSoapUi.Size = new System.Drawing.Size(22, 22);
             this.BtnCopyToClipboardSoapUi.TabIndex = 13;
             this.BtnCopyToClipboardSoapUi.UseVisualStyleBackColor = true;
-            this.BtnCopyToClipboardSoapUi.Click += new System.EventHandler(this.BtnCopyToClipboardSoapUi_Click);
+            this.BtnCopyToClipboardSoapUi.Click += new System.EventHandler(this.BtnCopyToClipboardSoapUiClick);
             // 
             // label7
             // 
@@ -338,7 +338,7 @@
             this.TbSoapUiHeader.ReadOnly = true;
             this.TbSoapUiHeader.Size = new System.Drawing.Size(153, 20);
             this.TbSoapUiHeader.TabIndex = 12;
-            this.TbSoapUiHeader.KeyDown += new System.Windows.Forms.KeyEventHandler(this.TbSoapUiHeader_KeyDown);
+            this.TbSoapUiHeader.KeyDown += new System.Windows.Forms.KeyEventHandler(this.TbSoapUiHeaderKeyDown);
             // 
             // RichTbSSOXml
             // 
@@ -431,7 +431,7 @@
             this.MinimumSize = new System.Drawing.Size(340, 433);
             this.Name = "Form1";
             this.Text = "getSSOToken";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1FormClosing);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.GbResults.ResumeLayout(false);
