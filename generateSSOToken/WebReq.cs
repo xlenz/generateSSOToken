@@ -26,6 +26,10 @@ namespace generateSSOToken
             request.Method = method.ToUpper();
             request.Proxy = null; //speed-up WebReq, do not autodetect Proxy
 
+            //Trust all certificates
+            if (ServicePointManager.ServerCertificateValidationCallback == null)
+                ServicePointManager.ServerCertificateValidationCallback = ((sender, certificate, chain, sslPolicyErrors) => true);
+
             if (ssoBase64 != null)
                 request.Headers.Add("ALFSSOAuthNToken", ssoBase64);
             if (contentType != null)
